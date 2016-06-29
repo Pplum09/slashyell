@@ -12,7 +12,11 @@ io.on('connection', function(socket){
     console.log('a user connected');
     
     var user_name = "";
+    var login = false;
     
+    // socketio defined id generated at connection automatically
+    //var id = socketid;
+    // on login attempt
     socket.on('login', function(name) {
         
         // make sure user isnt already logged on
@@ -22,15 +26,19 @@ io.on('connection', function(socket){
 
             // add to global array
             users.push(user_name);
+            
+            // set login flag
+            login = true;
+            
             io.emit('user-change', users);
-            io.emit('login-success');
+            socket.emit('login-success');
             io.emit('chat message', user_name + " has entered the room!");
         }    
         
         // error handle for user already logged on
         else {
             console.log(name + " already connected!");
-            io.emit('login-error');
+            socket.emit('login-error');
         }
     });
     
@@ -49,6 +57,7 @@ io.on('connection', function(socket){
             
                 // remove from global array
                 users.splice(value, 1); 
+                login = false;
                 io.emit('user-change', users);
                 io.emit('logout-success');
                 io.emit('chat message', user_name + " has left the room!");
@@ -77,8 +86,15 @@ io.on('connection', function(socket){
     socket.on('chat message', function(msg){
         
         // make sure user is logged in
-        console.log('message: ' + msg);
-        io.emit('chat message', user_name + ": " + msg);
+        if (login) {
+            console.log('message: ' + msg);
+            io.emit('chat message', user_name + ": " + msg);
+        }
+        
+        else {
+            console.log('user tried to chat without being logged in');
+            socket.emit('chat-error');
+        }
     });
     
     // if window is refreshed on logged on, wipe traces
@@ -113,7 +129,7 @@ io.on('connection', function(socket){
 });
 
 http.listen(app.get('port'), function(){
-    console.log(app.get('port'));
+    console.log('listening on port: ' + app.get('port'));
 });
 
 function contains(user) {

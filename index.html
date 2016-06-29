@@ -9,16 +9,36 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 
     <style>
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
+        
+        html,body { height: 100%; margin: 0px; padding: 0px; }
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 5px 10px; }
+        #messages li:nth-child(odd) { background: #eee; }
+        
+        #chatbox {
+            text-align:left;
+            margin-bottom:25px;
+            height:270px;
+            width:100%;
+            overflow:auto; 
+        }
+        
+        #send {
+            text-align:left;
+            margin:0 auto;
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+        }
     </style>
+    
+    <title>slashYell</title>
 </head>
 
 <body>  
     
     
-    <!-- Modal -->
+    <!-- HIDDEN LOGIN MODAL -->
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -29,18 +49,11 @@
                     <h4 class="modal-title" id="myModalLabel">Sign In To Chat!</h4>
                 </div>
                 <div class="modal-body">
-                    
                     <form id="login">
-                        
                         <input id="log" type="text" class="form-control" placeholder="Name">
-                            
-                        
-                        
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-info" >Go!</button>
                     </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-info" >Go!</button>
                 </div>
             </div>
         </div>
@@ -49,11 +62,9 @@
     <!-- NAVBAR -->
     <nav class="navbar navbar-default">
         <div class="container-fluid">
-            
             <div class="navbar-brand">
                 CMSC 437 CHATROOM 
             </div>
-            
             <div>
                 
                 <!-- LOGIN BUTTON -->
@@ -69,42 +80,59 @@
                 </button>
                 <ul id="on" class="dropdown-menu"></ul>
             </div>
-            
-            
-        
-        
-      
         </div>
     </nav>
     
-   
-
-        
-    
     <!-- MAIN MESSAGE WINDOW -->
-    <ul id="messages" class="list"></ul>
-             
- 
+    <div id='chatbox' class='window'>
+        <ul id="messages" class="list"></ul>
+    </div>
+    
     <!-- SEND MESSAGE FORM -->
-    <form id="message" style="padding: 3px; position: fixed; bottom: 0; width: 100%;">
-        <input id="m" autocomplete="off" style="border: 0; padding: 10px; width: 90%; margin-right: .5%; "/> <button type="button" class="btn btn-info" width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; >Send</button>
-    </form> 
-      
+    <div id='send'>
+        <form id="message" >
+            <input id="m" autocomplete="off" style='width: 90%; margin-left: 25px; margin-bottom: 25px'/> 
+            <button type="button" class="btn btn-info" >
+                Send
+            </button>
+        </form>
+    </div>    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     <script>
-            
+        
+        // enables socketio
+        var socket = io(); 
+        
+        // update chatbox scroll
+        var $cont = $('.window');
+        $cont[0].scrollTop = $cont[0].scrollHeight;
+        
         $(window).load(function(){
             
             // update logged in numbers
             socket.emit("update");
+            
+            
+            
+            // display modal/ hide buttons
             $('#myModal').modal('show');
             $("#logout").hide();
         });
         
-        var socket = io();
+        
+        
+        // on modal popup focus on login text area
+        $('#myModal').on('shown.bs.modal', function() {
+            $('#log').focus();
+        });
+        
+        // on modal close focus on message text area
+        $('#myModal').on('hidden.bs.modal', function() {
+            $('#m').focus();
+        });
         
         // login attempt
         $('#login').submit(function(){
@@ -124,6 +152,7 @@
         // on login error
         socket.on('login-error', function() {
             alert("user already logged in");
+            alert("error logging in");
         });
         
         // logout attempt
@@ -134,20 +163,15 @@
         // on logout success
         socket.on("logout-success", function() {
             $('#sign').show();
-            $("#logout").hide();    
+            $("#logout").hide(); 
         });
         
         // on chat message submit
         $('#message').submit(function(){
             socket.emit('chat message', $('#m').val());
+            $cont[0].scrollTop = $cont[0].scrollHeight;
             $('#m').val('');
             return false;
-        });
-        
-        
-        // on login error
-        socket.on('login-error', function() {
-            alert("error logging in");
         });
         
         
@@ -167,6 +191,11 @@
         // on chat message recieve
         socket.on('chat message', function(msg){
             $('#messages').append($('<li>').text(msg));
+        });
+        
+        // on chat message error usually due to not being logged in
+        socket.on('chat-error', function() {
+            alert('must be logged in to chat');
         });
     </script>
 </body>

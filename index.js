@@ -18,7 +18,7 @@ io.on('connection', function(socket){
     //var id = socketid;
     // on login attempt
     socket.on('login', function(name) {
-        
+
         // make sure user isnt already logged on
         if (!contains(name)) {
             console.log(name + " connected");

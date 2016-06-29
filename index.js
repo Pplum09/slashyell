@@ -2,6 +2,7 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+app.set('port', (process.env.PORT || 3000));
 var users = [];
 
 app.get('/', function(req, res){
@@ -112,7 +113,7 @@ io.on('connection', function(socket){
     });
 });
 
-http.listen(3000, function(){
+http.listen(app.get('port'), function(){
     console.log('listening on *:3000');
 });
 

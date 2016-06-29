@@ -109,12 +109,6 @@ io.on('connection', function(socket){
             }
             
         }
-        
-        // error handle for user already logged out
-        else {
-            console.log("contact admin: user does not exist in users array");
-            io.emit('logout-error');
-        }
     });
 });
 

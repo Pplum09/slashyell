@@ -59,7 +59,7 @@ io.on('connection', function(socket){
                 users.splice(value, 1); 
                 login = false;
                 io.emit('user-change', users);
-                io.emit('logout-success');
+                socket.emit('logout-success');
                 io.emit('chat message', user_name + " has left the room!");
             }
             
